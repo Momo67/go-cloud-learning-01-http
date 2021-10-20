@@ -23,6 +23,9 @@ type ServerInterface interface {
 	// (DELETE /todos/{todoId})
 	DeleteTodo(ctx echo.Context, todoId int32) error
 
+	// (GET /todos/{todoId})
+	GetTodo(ctx echo.Context, todoId int32) error
+
 	// (PUT /todos/{todoId})
 	UpdateTodo(ctx echo.Context, todoId int32) error
 }
@@ -75,6 +78,22 @@ func (w *ServerInterfaceWrapper) DeleteTodo(ctx echo.Context) error {
 	return err
 }
 
+// GetTodo converts echo context to params.
+func (w *ServerInterfaceWrapper) GetTodo(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "todoId" -------------
+	var todoId int32
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "todoId", runtime.ParamLocationPath, ctx.Param("todoId"), &todoId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter todoId: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.GetTodo(ctx, todoId)
+	return err
+}
+
 // UpdateTodo converts echo context to params.
 func (w *ServerInterfaceWrapper) UpdateTodo(ctx echo.Context) error {
 	var err error
@@ -122,6 +141,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/todos", wrapper.GetTodos)
 	router.POST(baseURL+"/todos", wrapper.CreateTodo)
 	router.DELETE(baseURL+"/todos/:todoId", wrapper.DeleteTodo)
+	router.GET(baseURL+"/todos/:todoId", wrapper.GetTodo)
 	router.PUT(baseURL+"/todos/:todoId", wrapper.UpdateTodo)
 
 }

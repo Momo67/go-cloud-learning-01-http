@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/labstack/echo/v4"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/labstack/echo/v4"
 )
 
 const defaultMaxId = 2
@@ -96,6 +97,19 @@ func (s goTodoServer) DeleteTodo(ctx echo.Context, todoId int32) error {
 		delete(s.data.Todos, todoId)
 		return ctx.NoContent(http.StatusNoContent)
 	}
+}
+
+// GetTodo will get the given todoID entry from the store, and if not present will return 400 Bad Request
+//curl -v -H "Content-Type: application/json" 'http://localhost:8080/todos/3' -> 200 |json_pp
+//curl -v -H "Content-Type: application/json" 'http://localhost:8080/todos/93333' -> 400 Bad Request
+func (s goTodoServer) GetTodo(ctx echo.Context, todoId int32) error {
+	s.logger.Printf("# Entering GetTodo(%d)", todoId)
+	if s.data.Todos[todoId] == nil {
+		return ctx.NoContent(http.StatusNotFound)
+	} else {
+		return ctx.JSON(http.StatusOK, s.data.Todos[todoId])
+	}
+
 }
 
 // UpdateTodo will store the modified information in the store for the given todoId

@@ -170,5 +170,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+    get:
+      description: get a todo
+      operationId: getTodo
+      parameters: 
+        - name: todoId
+          in: path
+          description: Id of the todo
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: get todo successful no content
+        '404':
+          description: get todo when todoId was not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
 
 

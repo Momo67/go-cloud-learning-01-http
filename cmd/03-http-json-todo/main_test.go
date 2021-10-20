@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
 )
 
 type idCounter struct {
@@ -172,6 +173,12 @@ func Test_goTodoServer_Todos(t *testing.T) {
 			wantStatusCode: http.StatusBadRequest,
 			wantBody:       "{\"message\":\"CreateTodo task cannot be empty\"}",
 			r:              newRequest(http.MethodPut, getUrlForId(myId), `{"completed":false,"id":`+myId.currentAsString()+` ,"task":""}`),
+		},
+		{
+			name:           "16 GetTodo with an existing id, should return a Todo",
+			wantStatusCode: http.StatusOK,
+			wantBody:       string(jsonInitialData[1]),
+			r:              newRequest(http.MethodGet, "/todos/1", ""),
 		},
 		{
 			name:           "99:  invalid path, should return 404 not found",
