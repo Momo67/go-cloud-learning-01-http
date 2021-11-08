@@ -2,6 +2,7 @@ package todos
 
 import (
 	"errors"
+	"sort"
 	"sync"
 	"time"
 )
@@ -37,18 +38,23 @@ func (m *memoryStore) Create(todo NewTodo) (*Todo, error) {
 	return t, nil
 }
 
-func (m *memoryStore) List(offset, limit int) ([]Todo, error) {
+func (m *memoryStore) List(offset, limit int) ([]*Todo, error) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
-	var res []Todo
+	var res []*Todo
 	if offset > 0 && offset < len(m.Todos) {
 		// handle offset
 	} else {
 		if limit > len(m.Todos) {
 			//return all
+			keys := make([]int, 0, len(m.Todos))
+			for k := range m.Todos {
+				keys = append(keys, int(k))
+			}
+			sort.Ints(keys)
 
-			for _, value := range m.Todos {
-				res = append(res, *value)
+			for _, k := range keys {
+				res = append(res, m.Todos[int32(k)])
 			}
 		}
 	}
@@ -131,6 +137,16 @@ func (m *memoryStore) Delete(id int32) error {
 		return nil
 	}
 	return errors.New("todo with this id does not exist")
+}
+
+// Close : will do cleanup for all todos stored in memory
+func (m *memoryStore) Close() {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	for idx, _ := range m.Todos {
+		delete(m.Todos, idx)
+	}
+	return
 }
 
 // initializeStorage initialize some dummy data to get some results back
