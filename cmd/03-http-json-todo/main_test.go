@@ -13,29 +13,39 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const DEBUG = false
+
 type idCounter struct {
 	currentMaxId int32
 }
 
 func (c *idCounter) increment() int32 {
 	c.currentMaxId = c.currentMaxId + 1
-	fmt.Printf("# IN increment() currentMaxId: %d\n", c.currentMaxId)
+	if DEBUG {
+		fmt.Printf("# IN increment() currentMaxId: %d\n", c.currentMaxId)
+	}
 	return c.currentMaxId
 }
 
 func (c *idCounter) decrement() int32 {
 	c.currentMaxId = c.currentMaxId - 1
-	fmt.Printf("# IN decrement() currentMaxId: %d\n", c.currentMaxId)
+	if DEBUG {
+		fmt.Printf("# IN decrement() currentMaxId: %d\n", c.currentMaxId)
+	}
 	return c.currentMaxId
 }
 
 func (c *idCounter) current() int32 {
-	fmt.Printf("# IN current() currentMaxId: %d\n", c.currentMaxId)
+	if DEBUG {
+		fmt.Printf("# IN current() currentMaxId: %d\n", c.currentMaxId)
+	}
 	return c.currentMaxId
 }
 
 func (c *idCounter) currentAsString() string {
-	fmt.Printf("# IN currentAsString() currentMaxId: %d\n", c.currentMaxId)
+	if DEBUG {
+		fmt.Printf("# IN currentAsString() currentMaxId: %d\n", c.currentMaxId)
+	}
 	return fmt.Sprintf("%d", c.currentMaxId)
 }
 
@@ -52,7 +62,6 @@ func Test_goTodoServer_Todos(t *testing.T) {
 
 	const (
 		defaultNewTask = "Learn Linux"
-		DEBUG          = true
 	)
 	myId := idCounter{currentMaxId: defaultMaxId}
 	InitialDB := initializeStorage()
@@ -179,6 +188,12 @@ func Test_goTodoServer_Todos(t *testing.T) {
 			wantStatusCode: http.StatusOK,
 			wantBody:       string(jsonInitialData[1]),
 			r:              newRequest(http.MethodGet, "/todos/1", ""),
+		},
+		{
+			name:           "17 GetTodo with a non existing id, should return Not Found",
+			wantStatusCode: http.StatusNotFound,
+			wantBody:       "",
+			r:              newRequest(http.MethodGet, "/todos/99999", ""),
 		},
 		{
 			name:           "99:  invalid path, should return 404 not found",
